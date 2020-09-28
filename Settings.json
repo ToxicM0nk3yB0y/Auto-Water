@@ -1,0 +1,13 @@
+{
+    "Pump":{
+       "LiterPerX": 846.9,
+       "P1tubetime": 10
+    },
+    "Plants":{
+       "P1":{
+          "LitersOfWater": 0.02,
+          "P1LastDate": "20/10/2020",
+          "DaysToWait": 7
+       }
+    }
+ }

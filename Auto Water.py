@@ -2,7 +2,25 @@ import RPi.GPIO as GPIO
 import schedule
 import time
 import datetime
+import json
 
+with open('Settings.json') as json_file:
+    settings = json.load(json_file)
+
+
+#due to using schedule
+#I want to make sure the file exists
+# and see changes
+def jsoncheck():
+    print("json")
+
+#basic idea of common informationt that can be pulled
+### Test ###
+def pull(plant):
+    for p in settings['Plants'][plant]:
+        p['LitersOfWater']
+        p['P1LastDate']
+        p['DaysToWait']
 
 
 # set GPIO mode to look ath the PI pins 
@@ -36,38 +54,30 @@ P1WaitTime = 7
 # Water Frist Plant
 def WaterP1():
     GPIO.output(2, GPIO.LOW)
-    #time.sleep(P1tubetime)
-    #print("tubes full")
+    # add it so that that data pulls from the json file
     time.sleep(P1watertime)
     print("water done")
-    #time.sleep(P1tubetime)
-    #print("tubes Empty")
     GPIO.cleanup(2)
        
 
 def WaterP2():
     GPIO.output(17, GPIO.LOW)
-    #time.sleep(P1tubetime)
-    #print("tubes full")
     time.sleep(P1watertime)
     print("water done")
-    #time.sleep(P1tubetime)
-    #print("tubes Empty")
     GPIO.cleanup(17)
    
-fun = locals()
 
+# converts last date water was printed on stored in json into timestamp
+# then add (days to wait * 86400)
+# if value is equal or greater than now
+# then it activates the pump as per settings
 def WhatsTheTime(LastDate, waitamount, water):
     now = datetime.datetime.now()
-    if now.day + waitamount <= LastDate.day:
+    Nwaitamount = waitamount * 86400
+    if LastDate.timestamp() + Nwaitamount <= now.timestamp():
        eval(water)
        P1LastDate = datetime.datetime.now()
-    
 
-
-
-#WaterP1()
-#WaterP2()
 
 try:
     schedule.every().day.at("17:00").do(lambda : WhatsTheTime(P1LastDate, P1WaitTime, WaterP1()))
