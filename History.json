@@ -1,0 +1,12 @@
+{
+    "Watering History1":{
+        "P1":{
+            "date": "10/02/2020",
+            "Liters of water": 0.02
+        },
+        "P2":{
+            "date": "10/02/2020",
+            "Liters of water": 0.02
+        }
+    }
+}

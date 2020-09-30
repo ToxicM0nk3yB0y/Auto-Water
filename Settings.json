@@ -5,9 +5,30 @@
     },
     "Plants":{
        "P1":{
+          "Status": "Active",
           "LitersOfWater": 0.02,
-          "P1LastDate": "20/10/2020",
-          "DaysToWait": 7
-       }
+          "LastEvent": "20/10/2020",
+          "DaysToWait": 7,
+          "TimeToWater(24h)": "23:41",
+          "NextEvent" : "",
+          "GPIO": 2
+          
+       },
+       "P2":{
+         "Status": "Active",
+         "LitersOfWater": 0.03,
+         "LastEvent": "20/10/2021",
+         "DaysToWait": 8,
+         "TimeToWater(24h)": "23:42",
+         "NextEvent" : ""
+      },
+      "P3":{
+         "Status": "",
+         "LitersOfWater": 0.04,
+         "LastEvent": "20/10/2022",
+         "DaysToWait": 9,
+         "TimeToWater(24h)": "23:43",
+         "NextEvent" : ""
     }
+   }
  }

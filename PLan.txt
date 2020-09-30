@@ -1,0 +1,8 @@
+A watering system that can water lots of different plants tghrough out the day
+and note down the changes
+with the ability to change the settings at any time
+
+
+
+json file for settings
+day before check? and exucate based on that?
