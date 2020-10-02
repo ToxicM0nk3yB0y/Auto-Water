@@ -4,8 +4,14 @@ import sched, time
 import schedule
 from datetime import datetime, timedelta
 
+
+sc = sched.scheduler(time.time, time.sleep)
+
+
 with open('D:\Projects\Coding\Python\Auto-Water\Settings.json') as json_file:
     jobs = json.load(json_file)
+
+
 
 def update():
     return
@@ -34,7 +40,7 @@ def water(plant):
             
             
 
-def WaitTime(nextevent, daystoWait, timetoWater, lastEvent):
+def WaitTime(nextevent, daystoWait, timetoWater, lastEvent, defaultTime):
     # take current time
     now = datetime.now()
 
@@ -51,7 +57,23 @@ def WaitTime(nextevent, daystoWait, timetoWater, lastEvent):
             return False
             
     # check if DaysToWait and TimeToWater(24h) are blak
-    if daystoWait != 0 and timetoWater != 0:
+    if daystoWait != '' and timetoWater != '':
+
+        #if watering time or days to wait has been missed, time is equal to defaultTime and done today
+        if timetoWater == '':
+            if datetime.strptime(lastEvent, '%d/%m/%Y') + timedelta(days=daystoWait) <= datetime.now():
+                T = defaultTime.split(":")
+                h = int(str(T[0]))
+                m = int(str(T[1]))
+
+                nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
+                result = nowr.timestamp() - now.timestamp()
+                
+                # return true and the time to wait
+                return True, result
+                #update('NextEvent', nowr)
+            else: return False, 0
+            
         
         #spliting out clock time for TimtToWater(24h)
         T = timetoWater.split(":")
@@ -61,18 +83,50 @@ def WaitTime(nextevent, daystoWait, timetoWater, lastEvent):
         #check if LastEvent is blank
         if lastEvent != "": 
             # see if its over due
-            if datetime.strptime(lastEvent, '%d/%m/%Y') + timedelta(days=daystoWait) <= datetime.today():
-                nowr = now.date + timedelta(hours=h,minutes=m)
-                result = nowr - now.timestamp()
+            if (datetime.strptime(lastEvent, '%d/%m/%Y') + timedelta(days=daystoWait)) <= datetime.today():
+                nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
+                result = nowr.timestamp() - now.timestamp()
                 # return true and the time to wait
                 return True, result
                 #update('NextEvent', nowr)
+            else: return False, 0
+        
+        #check if the days to wait is missing too
+        elif daystoWait == '':
+            if datetime.strptime(lastEvent, '%d/%m/%Y') <= datetime.now():
+                T = timetoWater.split(":")
+                h = int(str(T[0]))
+                m = int(str(T[1]))
+
+                nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
+                result = nowr.timestamp() - now.timestamp()
+                
+                # return true and the time to wait
+                return True, result
+                #update('NextEvent', nowr)
+            else: return False, 0
         
         else: 
-            nowr = now.date + timedelta(hours=h,minutes=m)
-            result = nowr - now.timestamp()
+            nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
+            result = nowr.timestamp() - now.timestamp()
             update("LastEvent", nowr.date)
             return result
+
+    else:             
+        if datetime.strptime(lastEvent, '%d/%m/%Y') <= datetime.now():
+            T = defaultTime.split(":")
+            h = int(str(T[0]))
+            m = int(str(T[1]))
+
+            nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
+            result = nowr.timestamp() - now.timestamp()
+            
+            # return true and the time to wait
+            return True, result
+            #update('NextEvent', nowr)
+        else: return False, 0
+
+
 
 
 
@@ -80,18 +134,20 @@ def load_Jobs():
     for job in jobs['Plants']:
         if jobs['Plants'][job]['Status'] == "Active":
             sjob = jobs['Plants'][job]
-
             # is NextEvent blank?
             if sjob['NextEvent'] == "":
                 # if end_date.date <> now.date;
-                result = WaitTime(0, sjob['DaysToWait'], sjob['TimeToWater(24h)'], sjob['LastEvent'])
+                result = WaitTime(0, sjob['DaysToWait'], sjob['TimeToWater(24h)'], sjob['LastEvent'], jobs['default']['TimeToWater(24h)'])
                 if result[0] == True:
                     # scheduling watering for set delay
                     # result[1] = seconds to wait, water is func and job is var for Plant ref
-                    schedule.enterabs(result[1], 1, water, job)
+                    sc.enter(result[1], 1, water, argument=(job,))
+                    print("time to wait; " + str(result[1]) + " for;"  + job)
+                elif result[0] == False:
+                    continue
             else: 
                 # if end_date.date <> now.date;
-                result = WaitTime(sjob['NextEvent'], 0, 0)
+                result = WaitTime(sjob['NextEvent'], '', '')
                 if result[0] == True:
                     # scheduling watering for set delay
                     # result[1] = seconds to wait, water is func and job is var for Plant ref
@@ -104,12 +160,13 @@ def load_Jobs():
 try:
     #schedule.every().day.at("23:16").do(load_Jobs)
     load_Jobs()
-        
+    sc.run()
+
     while True:
         schedule.run_pending()
         time.sleep(1)
 
 except KeyboardInterrupt:
     print("   Quite")
-    GPIO.cleanup()
+    #GPIO.cleanup()
     pass
