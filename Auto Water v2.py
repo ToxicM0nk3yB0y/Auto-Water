@@ -27,7 +27,21 @@ def update(section, value,  plant ):
 
     with open(jsonFile, 'w') as file:
         json.dump(json_data, file, indent=2)
+
+
+def timesplit(value):
+    try:
+        T = value.split(":")
+        return int(str(T[0])), int(str(T[1]))
     
+    except ValueError:
+        T = jobs['default']['TimeToWater(24h)'].split(":")
+        return int(str(T[0])), int(str(T[1]))
+
+def returnseconds(new, now):
+    T = timesplit(jobs['default']['TimeToWater(24h)'])
+    if new.timestamp() - now.timestamp() <= 0: return now.replace(hour=T[0],minute=T[1],second=0,microsecond=0).timestamp() - now.timestamp(), True
+    else: new.timestamp() - now.timestamp(), False
 
     
 
@@ -88,42 +102,38 @@ def WaitTime(nextevent, daystoWait, timetoWater, lastEvent, defaultTime, plant):
     if nextevent != '':
         
         #re-cal the date
-        T = timetoWater.split(":")
-        h = int(str(T[0]))
-        m = int(str(T[1]))
+        T = timesplit(timetoWater)
 
         nowr = datetime.strptime(lastEvent, '%d/%m/%Y') + timedelta(days=daystoWait)
-        update('NextEvent', nowr.replace(hour=h,minute=m,second=0,microsecond=0), plant)
 
-        # convert nextevent string into date
-        nexteventDate = datetime.strptime(nowr , '%d/%m/%Y %H:%M:%S')
         #check if its today
-        if nexteventDate.date() == now.date():
+        if nowr.date() <= now.date():
             #return true & the time till event today
-            return True, nexteventDate.timestamp() - now.timestamp()
+            result = returnseconds(nowr, now)
+            if result[1] == True: 
+                T = timesplit(defaultTime)
+                update('NextEvent', nowr.replace(day=now.date().day,hour=T[0],minute=T[1],second=0,microsecond=0), plant)
+            return True, result[0]
         else:
             #if its not today return false
+            update('NextEvent', nowr.replace(hour=T[0],minute=T[1],second=0,microsecond=0), plant)
             return False, 0
             
     # check if DaysToWait and TimeToWater(24h) are blak
     if daystoWait != '' and timetoWater != '':
 
-        T = timetoWater.split(":")
-        h = int(str(T[0]))
-        m = int(str(T[1]))
+        T = timesplit(timetoWater)
 
         nowr = datetime.strptime(lastEvent, '%d/%m/%Y') + timedelta(days=daystoWait)
-        update('NextEvent', nowr.replace(hour=h,minute=m,second=0,microsecond=0), plant)
+        update('NextEvent', nowr.replace(hour=T[0],minute=T[1],second=0,microsecond=0), plant)
 
         #if watering time or days to wait has been missed, time is equal to defaultTime and done today
         if timetoWater == '':
             if datetime.strptime(lastEvent, '%d/%m/%Y') + timedelta(days=daystoWait) <= datetime.now():
-                T = defaultTime.split(":")
-                h = int(str(T[0]))
-                m = int(str(T[1]))
+                T = timesplit(defaultTime)
 
-                nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
-                result = nowr.timestamp() - now.timestamp()
+                nowr = now.replace(hour=T[0],minute=T[1],second=0,microsecond=0)
+                result = returnseconds(nowr, now)
                 
                 update('NextEvent', nowr, plant)
 
@@ -134,19 +144,17 @@ def WaitTime(nextevent, daystoWait, timetoWater, lastEvent, defaultTime, plant):
             
         
         #spliting out clock time for TimtToWater(24h)
-        T = timetoWater.split(":")
-        h = int(str(T[0]))
-        m = int(str(T[1]))
+        T = timesplit(timetoWater)
         
         #check if LastEvent is blank
         if lastEvent != "": 
             # see if its over due
             if (datetime.strptime(lastEvent, '%d/%m/%Y') + timedelta(days=daystoWait)) <= datetime.today():
-                nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
-                result = nowr.timestamp() - now.timestamp()
+                nowr = now.replace(hour=T[0],minute=T[1],second=0,microsecond=0)
+                result = returnseconds(nowr, now)
 
                 update('NextEvent', nowr, plant)
-                update('LastEvent', nowr, plant)
+                update('LastEvent', nowr.date(), plant)
 
                 # return true and the time to wait
                 return True, result
@@ -156,12 +164,10 @@ def WaitTime(nextevent, daystoWait, timetoWater, lastEvent, defaultTime, plant):
         #check if the days to wait is missing too
         elif daystoWait == '':
             if datetime.strptime(lastEvent, '%d/%m/%Y') <= datetime.now():
-                T = timetoWater.split(":")
-                h = int(str(T[0]))
-                m = int(str(T[1]))
+                T = timesplit(timetoWater)
 
-                nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
-                result = nowr.timestamp() - now.timestamp()
+                nowr = now.replace(hour=T[0],minute=T[1],second=0,microsecond=0)
+                result = returnseconds(nowr, now)
                 
                 update('NextEvent', nowr, plant)
 
@@ -171,19 +177,17 @@ def WaitTime(nextevent, daystoWait, timetoWater, lastEvent, defaultTime, plant):
             else: return False, 0
         
         else: 
-            nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
-            result = nowr.timestamp() - now.timestamp()
+            nowr = now.replace(hour=T[0],minute=T[1],second=0,microsecond=0)
+            result = returnseconds(nowr, now)
             update("LastEvent", nowr, plant)
             return result
 
     else:             
         if datetime.strptime(lastEvent, '%d/%m/%Y') <= datetime.now():
-            T = defaultTime.split(":")
-            h = int(str(T[0]))
-            m = int(str(T[1]))
+            T = timesplit(defaultTime)
 
-            nowr = now.replace(hour=h,minute=m,second=0,microsecond=0)
-            result = nowr.timestamp() - now.timestamp()
+            nowr = now.replace(hour=T[0],minute=T[1],second=0,microsecond=0)
+            result = returnseconds(nowr, now)
             
             update('NextEvent', nowr, plant)
 
