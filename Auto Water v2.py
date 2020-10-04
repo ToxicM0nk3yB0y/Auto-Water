@@ -29,6 +29,7 @@ def update(section, value,  plant ):
         json.dump(json_data, file, indent=2)
 
 
+# split hours and minutes, if blank use default
 def timesplit(value):
     try:
         T = value.split(":")
@@ -38,6 +39,7 @@ def timesplit(value):
         T = jobs['default']['TimeToWater(24h)'].split(":")
         return int(str(T[0])), int(str(T[1]))
 
+# check if second till action is lower than 0, if so use today and default time
 def returnseconds(new, now):
     T = timesplit(jobs['default']['TimeToWater(24h)'])
     if new.timestamp() - now.timestamp() <= 0: return now.replace(hour=T[0],minute=T[1],second=0,microsecond=0).timestamp() - now.timestamp(), True
@@ -222,20 +224,21 @@ def load_Jobs():
                 if result[0] == True:
                     # scheduling watering for set delay
                     # result[1] = seconds to wait, water is func and job is var for Plant ref
-                    sc.enter(result[1], 1, water, argument=(job,)) 
-
+                    print("time to wait; " + str(result[1]) + " for;"  + job)
+                    sc.enter(result[1], 1, water, argument=(job,))
 
 
 
 
 try:
-    #schedule.every().day.at("23:16").do(load_Jobs)
-    load_Jobs()
-    sc.run()
+    schedule.every().day.at("22:42").do(load_Jobs)
+
 
     while True:
         schedule.run_pending()
+        sc.run()
         time.sleep(1)
+
 
 except KeyboardInterrupt:
     print("   Quite")

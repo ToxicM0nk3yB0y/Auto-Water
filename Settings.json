@@ -1,6 +1,6 @@
 {
   "default": {
-    "TimeToWater(24h)": "23:00"
+    "TimeToWater(24h)": "22:22"
   },
   "Pump": {
     "LiterPerX": 846.9,
@@ -10,28 +10,28 @@
     "P1": {
       "Status": "Active",
       "LitersOfWater": 0.001,
-      "LastEvent": "30/09/2020",
-      "DaysToWait": 1,
+      "LastEvent": "04/10/2020",
+      "DaysToWait": 7,
       "TimeToWater(24h)": "10:01",
-      "NextEvent": "04/10/2020 23:00:00",
+      "NextEvent": "11/10/2020 10:01:00",
       "GPIO": 2
     },
     "P2": {
       "Status": "Active",
       "LitersOfWater": 0.001,
       "LastEvent": "04/10/2020",
-      "DaysToWait": 5,
+      "DaysToWait": 7,
       "TimeToWater(24h)": "1:00",
-      "NextEvent": "09/10/2020 01:00:00",
+      "NextEvent": "11/10/2020 01:00:00",
       "GPIO": 2
     },
     "P3": {
       "Status": "Active",
       "LitersOfWater": 0.001,
       "LastEvent": "20/10/2022",
-      "DaysToWait": 9,
-      "TimeToWater(24h)": "23:43",
-      "NextEvent": "29/10/2022 23:43:00",
+      "DaysToWait": 7,
+      "TimeToWater(24h)": "20:43",
+      "NextEvent": "27/10/2022 20:43:00",
       "GPIO": 2
     }
   }
